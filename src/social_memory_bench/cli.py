@@ -6,7 +6,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from .adapters import JsonlCommandAdapter, LexicalAdapter
+from .adapters import JsonlCommandAdapter, LexicalAdapter, ReferenceControlAdapter
 from .dataset import DatasetValidationError, load_dataset, save_dataset
 from .generator import SCALES, generate_dataset
 from .locomo import import_locomo
@@ -33,7 +33,7 @@ def build_parser() -> argparse.ArgumentParser:
     run.add_argument("dataset", type=Path)
     run.add_argument(
         "--adapter",
-        choices=["bm25-policy", "bm25-unsafe", "command"],
+        choices=["bm25-policy", "bm25-unsafe", "reference-control", "command"],
         default="bm25-policy",
     )
     run.add_argument(
@@ -51,7 +51,7 @@ def build_parser() -> argparse.ArgumentParser:
     suite.add_argument("--config", type=Path, required=True)
     suite.add_argument(
         "--adapter",
-        choices=["bm25-policy", "bm25-unsafe", "command"],
+        choices=["bm25-policy", "bm25-unsafe", "reference-control", "command"],
         default="bm25-policy",
     )
     suite.add_argument("--command", dest="adapter_command")
@@ -203,6 +203,8 @@ def _create_adapter(args: argparse.Namespace):
         if not args.adapter_command:
             raise ValueError("--command is required with --adapter command")
         return JsonlCommandAdapter(args.adapter_command, timeout_seconds=args.timeout)
+    if args.adapter == "reference-control":
+        return ReferenceControlAdapter(top_k=args.top_k)
     return LexicalAdapter(
         top_k=args.top_k,
         policy_aware=args.adapter == "bm25-policy",

@@ -7,6 +7,7 @@ from social_memory_bench.adapters import (
     LexicalAdapter,
     MemoryAdapter,
     MemoryResponse,
+    ReferenceControlAdapter,
 )
 from social_memory_bench.generator import generate_dataset
 from social_memory_bench.policy import PolicyOracle
@@ -49,6 +50,38 @@ class EndToEndTest(unittest.TestCase):
         self.assertGreater(safe["summary"]["evidence_recall"], 0.0)
         edited = next(row for row in safe["responses"] if row["query_id"] == "q_message_edit")
         self.assertEqual(1.0, edited["answer_hit"])
+
+    def test_reference_control_passes_the_deployment_gate(self) -> None:
+        dataset = generate_dataset(scale="tiny", seed=7)
+        result = run_benchmark(dataset, ReferenceControlAdapter(top_k=5), repetitions=3)
+        summary = result["summary"]
+        self.assertTrue(summary["deployment_gate_pass"])
+        self.assertTrue(summary["ranking_eligible"])
+        self.assertEqual(0, summary["critical_policy_violations"])
+        self.assertEqual(1.0, summary["task_utility"])
+        # it beats the policy-aware BM25 control it is meant to anchor above
+        policy = run_benchmark(dataset, LexicalAdapter(top_k=5, policy_aware=True), repetitions=3)
+        self.assertFalse(policy["summary"]["deployment_gate_pass"])
+
+    def test_distractors_never_contain_an_answer_pool_value(self) -> None:
+        pool = [
+            "Juniper", "Marigold", "Kestrel", "Saffron", "Cobalt",
+            "Blue Nile", "River Lantern", "Acacia House", "Moon Courtyard",
+            "silver plain", "silver plane", "night rate", "knight rate",
+            "blue sale", "blue sail", "Port Sudan", "Atbara", "Kassala",
+            "Omdurman", "Cedar-719", "Quartz-284", "Harbor-631",
+        ]
+        for seed in (7, 11, 19):
+            dataset = generate_dataset(scale="small", seed=seed)
+            noise = [
+                str(event.get("observed_text", "")).lower()
+                for event in dataset.events
+                if event.get("noise")
+            ]
+            self.assertTrue(noise)
+            for text in noise:
+                for value in pool:
+                    self.assertNotIn(value.lower(), text)
 
     def test_small_generation_is_reproducible(self) -> None:
         first = generate_dataset(scale="small", seed=11)

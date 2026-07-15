@@ -122,6 +122,7 @@ def _public_event(event: dict[str, Any]) -> dict[str, Any]:
             "source_timestamp",
             "ingest_timestamp",
             "attachment_ref",
+            "trust",
         },
         "delete": {"target_event_id", "requested_by", "scope"},
         "edit": {"target_event_id", "author_id", "modality", "observed_text"},

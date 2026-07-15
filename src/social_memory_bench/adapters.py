@@ -135,11 +135,14 @@ class LexicalAdapter(MemoryAdapter):
         for event in restored:
             self.ingest(event)
 
+    def _candidate_messages(self) -> list[dict[str, Any]]:
+        return [event for event in self.events if event.get("type") == "message"]
+
     def answer(self, query: dict[str, Any]) -> MemoryResponse:
         if self.scenario is None or self.policy is None:
             raise RuntimeError("adapter must be reset before use")
         recipients = {str(query["requester_id"]), *map(str, query.get("audience_ids", []))}
-        messages = [event for event in self.events if event.get("type") == "message"]
+        messages = self._candidate_messages()
         ranked = _bm25_rank(str(query["question"]), messages)
         if self.policy_aware:
             at_seq = int(query["after_seq"])
@@ -169,7 +172,7 @@ class LexicalAdapter(MemoryAdapter):
         )
 
     def stats(self) -> dict[str, Any]:
-        messages = [event for event in self.events if event.get("type") == "message"]
+        messages = self._candidate_messages()
         return {
             "indexed_messages": len(messages),
             "indexed_text_bytes": sum(
@@ -179,6 +182,38 @@ class LexicalAdapter(MemoryAdapter):
 
     def config(self) -> dict[str, Any]:
         return {"top_k": self.top_k, "policy_aware": self.policy_aware}
+
+
+class ReferenceControlAdapter(LexicalAdapter):
+    """Positive engineering control that is designed to pass the deployment gate.
+
+    It reuses the event store, evaluator-consistent policy replay, snapshot/restore,
+    and typed-deny logic of :class:`LexicalAdapter`, and additionally refuses to
+    treat untrusted-provenance content as authoritative memory. Every signal it
+    uses is legitimately available to a product: the same authorization rules the
+    evaluator applies (reconstructed online from ingested membership, deletion, and
+    policy-change events) and the ``trust`` content-provenance marker a real
+    ingestion pipeline attaches. It receives no gold answers, evidence labels, or
+    task tags.
+
+    This exists to prove the smoke gate is passable and to anchor the metric scale.
+    It is NOT a comparator: do not rank other systems against it, because it shares
+    the evaluator's access-control implementation by construction.
+    """
+
+    def __init__(self, *, top_k: int = 5):
+        super().__init__(top_k=top_k, policy_aware=True)
+        self.name = "reference-control"
+
+    def _candidate_messages(self) -> list[dict[str, Any]]:
+        return [
+            event
+            for event in super()._candidate_messages()
+            if event.get("trust") != "untrusted_user_content"
+        ]
+
+    def config(self) -> dict[str, Any]:
+        return {"top_k": self.top_k, "policy_aware": True, "drops_untrusted": True}
 
 
 class _OnlinePolicy:

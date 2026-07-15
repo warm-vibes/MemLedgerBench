@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Added the sealed track: a no-network container runner (`Dockerfile`/`compose.yaml`), a
+  `generate --sealed`/`seal_dataset` transform that produces opaque nonce-salted worlds
+  (score-preserving), and a `sealed-run` command that emits only a result and a provenance manifest
+  (seed, dataset sha, image digest). The runner now records all answers before building ground truth.
 - Renamed the project to **MemLedgerBench** (package `mem_ledger_bench`, CLI `mem-ledger-bench`); the
   former name collided with a published benchmark (SocialMemBench, Owolabi, arXiv 2605.17789).
 - Dual-licensed the release: Apache-2.0 for source code, CC BY 4.0 for the `data/` datasets.

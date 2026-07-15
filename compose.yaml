@@ -1,0 +1,26 @@
+# No-network sealed runner. Build once, then score a submission offline.
+#
+#   mem-ledger-bench generate --scale tiny --seed 4242 --sealed --nonce PRIVATE \
+#     --out sealed/world.json
+#   mkdir -p out
+#   docker compose run --rm sealed-runner
+#
+# Results land in ./out/result.json and ./out/manifest.json. The container has
+# no network (network_mode: none), so a submission cannot exfiltrate the world.
+services:
+  sealed-runner:
+    build: .
+    image: memledgerbench-sealed:local
+    network_mode: "none"
+    environment:
+      MLB_IMAGE_DIGEST: "${MLB_IMAGE_DIGEST:-}"
+    volumes:
+      - ./sealed:/world:ro
+      - ./out:/out
+    command:
+      - sealed-run
+      - /world/world.json
+      - --command
+      - python examples/unsafe_jsonl_adapter.py
+      - --out-dir
+      - /out

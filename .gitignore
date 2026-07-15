@@ -11,3 +11,5 @@ build/
 results/*.json
 data/generated/
 data/private/
+sealed/
+out/

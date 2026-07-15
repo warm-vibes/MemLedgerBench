@@ -53,6 +53,8 @@ voice provenance. See [the competitive audit](docs/competitive_audit.md) and
 
 **Evaluating your own memory system?** Follow the step-by-step, copy-paste
 [runbook](docs/run-the-benchmark.md): get the dataset, plug in your adapter, run, and report results.
+For a private, no-network evaluation against a sealed world, see the
+[sealed runner](docs/sealed-runner.md).
 
 Python 3.11 or newer is required.
 
@@ -139,6 +141,7 @@ IDs. LoCoMo is licensed CC BY-NC 4.0; verify its terms before commercial reuse.
 ## Repository guide
 
 - `docs/run-the-benchmark.md` — vendor runbook: dataset, adapter, run, and submit;
+- `docs/sealed-runner.md` — no-network containerized runner for sealed evaluation sets;
 - `CLAUDE.md` — continuation brief and next priorities for Claude Code;
 - `docs/competitive_audit.md` — current benchmark/product landscape and value analysis;
 - `docs/release_audit.md` — adversarial code/validity audit and readiness tiers;
@@ -146,7 +149,8 @@ IDs. LoCoMo is licensed CC BY-NC 4.0; verify its terms before commercial reuse.
 - `docs/dataset_card.md` — fixture contents, intended use, and limitations;
 - `docs/privacy_threat_model.md` — desired security properties and known enforcement gaps;
 - `src/mem_ledger_bench/` — generator, policy oracle, adapters, runner, and scoring;
-- `tests/` — 23 deterministic unit and end-to-end tests.
+- `Dockerfile`, `compose.yaml` — build the sealed no-network runner;
+- `tests/` — 27 deterministic unit and end-to-end tests.
 
 ## Data, privacy, and licensing
 

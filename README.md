@@ -151,4 +151,7 @@ without explicit authorization, data minimization, retention controls, and a doc
 Cultural context must come from what people explicitly expressed; do not infer protected traits from
 names, language, or group membership.
 
-No open-source license has yet been selected for this prototype. See `LICENSE` before redistribution.
+MemLedgerBench is dual-licensed. The source code is licensed under the **Apache License 2.0**
+(`LICENSE`); the synthetic datasets under `data/` are licensed under **Creative Commons Attribution
+4.0 International** (`data/LICENSE`). Reuse either part under its own terms and preserve attribution;
+see `NOTICE`.

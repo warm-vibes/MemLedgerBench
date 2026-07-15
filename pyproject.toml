@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=68"]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -8,7 +8,9 @@ version = "0.2.0"
 description = "A permission-aware lifecycle conformance harness for social-agent memory systems"
 readme = "README.md"
 requires-python = ">=3.11"
-authors = [{ name = "Social Memory Benchmark contributors" }]
+authors = [{ name = "MemLedgerBench contributors" }]
+license = "Apache-2.0"
+license-files = ["LICENSE", "data/LICENSE"]
 dependencies = []
 
 [project.scripts]

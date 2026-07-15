@@ -4,6 +4,7 @@ title: "MemLedgerBench: a social-memory lifecycle conformance prototype"
 type: software
 version: 0.2.0
 date-released: 2026-07-14
+license: Apache-2.0
 authors:
   - name: "MemLedgerBench contributors"
 abstract: >-

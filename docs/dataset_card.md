@@ -62,5 +62,7 @@ membership.
 
 ## Licensing
 
-The synthetic fixture is currently distributed under the repository's restrictive prototype license
-status. Imported LoCoMo data is not bundled and remains subject to LoCoMo's CC BY-NC 4.0 terms.
+The synthetic fixture and all other data under `data/` are licensed under Creative Commons
+Attribution 4.0 International (`data/LICENSE`); attribute MemLedgerBench on reuse. The harness source
+code is separately licensed under Apache-2.0 (`LICENSE`). Imported LoCoMo data is not bundled and
+remains subject to LoCoMo's CC BY-NC 4.0 terms.

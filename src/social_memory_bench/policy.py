@@ -87,14 +87,3 @@ class PolicyOracle:
         return bool(recipient_set) and all(
             self.user_can_view(event_id, user_id, at_seq) for user_id in recipient_set
         )
-
-    def visible_message_ids(
-        self, recipients: Iterable[str], at_seq: int
-    ) -> set[str]:
-        recipient_set = set(recipients)
-        return {
-            str(event["id"])
-            for event in self.dataset.events
-            if event.get("type") == "message"
-            and self.audience_can_view(str(event["id"]), recipient_set, at_seq)
-        }

@@ -190,7 +190,7 @@ def main(argv: list[str] | None = None) -> int:
     except (DatasetValidationError, ValueError, RuntimeError, OSError, json.JSONDecodeError) as error:
         print(f"error: {error}", file=sys.stderr)
         return 2
-    return 1
+    raise AssertionError(f"unhandled action {args.action!r}")
 
 
 def _read_json(path: Path) -> dict[str, Any]:

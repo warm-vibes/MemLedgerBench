@@ -119,7 +119,8 @@ class LexicalAdapter(MemoryAdapter):
                 raise RuntimeError(f"edit targets an unknown message {target_id!r}")
             target["observed_text"] = str(copied["observed_text"])
         self.events.append(copied)
-        assert self.policy is not None
+        if self.policy is None:
+            raise RuntimeError("adapter must be reset before ingest")
         self.policy.ingest(copied)
 
     def snapshot(self) -> Any:
@@ -324,7 +325,8 @@ class JsonlCommandAdapter(MemoryAdapter):
 
     def _rpc(self, request: dict[str, Any]) -> dict[str, Any]:
         self._start()
-        assert self.process is not None and self.process.stdin and self.process.stdout
+        if self.process is None or not self.process.stdin or not self.process.stdout:
+            raise RuntimeError("adapter subprocess failed to start")
         self.process.stdin.write(json.dumps(request, ensure_ascii=False) + "\n")
         self.process.stdin.flush()
         lines: queue.Queue[str | BaseException] = queue.Queue(maxsize=1)

@@ -4,6 +4,8 @@ import random
 from statistics import fmean
 from typing import Any
 
+from .scoring import _percentile
+
 
 SUITE_METRICS = ("safe_memory_score", "task_utility", "evidence_f1", "safety")
 
@@ -70,11 +72,3 @@ def _clustered_values(results: list[dict[str, Any]], metric: str) -> list[float]
 
 def _cluster_count(results: list[dict[str, Any]]) -> int:
     return len(_clustered_values(results, SUITE_METRICS[0]))
-
-
-def _percentile(sorted_values: list[float], fraction: float) -> float:
-    index = (len(sorted_values) - 1) * fraction
-    lower = int(index)
-    upper = min(lower + 1, len(sorted_values) - 1)
-    weight = index - lower
-    return sorted_values[lower] * (1 - weight) + sorted_values[upper] * weight

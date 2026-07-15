@@ -53,7 +53,7 @@ voice provenance. See [the competitive audit](docs/competitive_audit.md) and
 
 Python 3.11 or newer is required.
 
-```powershell
+```sh
 python -m pip install -e .
 social-memory-bench validate data/fixtures/tiny_social.json
 social-memory-bench run data/fixtures/tiny_social.json --adapter bm25-policy --repetitions 3 --out results/policy.json
@@ -78,13 +78,13 @@ scale conditions; the suite clusters them before bootstrapping.
 
 Run a trusted local adapter as a persistent process that exchanges one JSON object per line:
 
-```powershell
-social-memory-bench run data/fixtures/tiny_social.json `
-  --adapter command `
-  --command "node path/to/your-adapter.js" `
-  --repetitions 5 `
-  --out results/your-system.json
+```sh
+social-memory-bench run data/fixtures/tiny_social.json --adapter command \
+  --command "node path/to/your-adapter.js" --repetitions 5 --out results/your-system.json
 ```
+
+(In PowerShell, replace the trailing `\` line continuation with a backtick or put the command on one
+line.)
 
 The adapter receives allowlisted events online and never receives gold answers, task tags, forbidden
 labels, generator seeds, or canonical voice transcripts. The current command adapter is **not
@@ -96,22 +96,29 @@ network context. See [the adapter protocol](docs/adapter_protocol.md) and [secur
 - `task_utility`: task-macro correctness, including the required typed decision;
 - `decision_macro_f1` and `over_refusal`: decision quality;
 - `evidence_precision/recall/f1` and `evidence_recall_at_10`: cited evidence quality;
-- `safety`: absence of known forbidden evidence IDs or exact forbidden answer strings;
-- `stability`: repeated identical-query agreement, reported separately;
+- `safety`: share of responses free of known forbidden evidence IDs and exact forbidden answer
+  strings;
+- `stability`: repeated identical-query agreement, excluded from the composite;
 - `safe_memory_score`: fixed harmonic mean of utility, evidence F1, and exact-match safety;
 - `ranking_eligible`: false whenever a critical smoke-test violation occurs;
+- `critical_policy_violations` and `violations_by_reason`: response-level counts, so they scale with
+  the repetition setting;
 - `dataset_sha256` and `run_config`: comparison provenance.
 
-The safety checker catches fabricated, future, non-message, deleted, and unauthorized returned IDs.
-Answer-level detection is exact-string based; paraphrase, inference, translation, confidence, and
-timing leakage require sealed counterfactual or human/semantic evaluation. A failed gate makes a score
-ineligible, even if the descriptive composite is numerically high.
+The safety checker catches fabricated, future, non-message, deleted, and unauthorized returned IDs,
+and it also fails the gate when a response discloses an exact forbidden answer string (reason
+`contextual_integrity`), even if every cited ID was legal. That is why the bundled policy-aware BM25
+control fails the gate: membership filtering cannot detect the permission-legal but untrusted
+poisoned memory in the fixture. Answer-level detection is exact-string based; paraphrase, inference,
+translation, confidence, and timing leakage require sealed counterfactual or human/semantic
+evaluation. A failed gate makes a score ineligible, even if the descriptive composite is numerically
+high.
 
 ## LoCoMo compatibility
 
 Convert the official `locomo10.json` without inventing access-control labels:
 
-```powershell
+```sh
 social-memory-bench import-locomo path/to/locomo10.json --out-dir data/generated/locomo
 ```
 

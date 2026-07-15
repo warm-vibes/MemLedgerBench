@@ -14,7 +14,7 @@ for protocol messages.
 The adapter receives non-secret scenario structure, but no event stream or test labels.
 
 ```json
-{"op":"reset","scenario":{"benchmark_version":"0.2","scenario_id":"...","entities":[],"spaces":[]}}
+{"op":"reset","scenario":{"benchmark_version":"0.2","scenario_id":"...","entities":[],"spaces":[],"metadata":{}}}
 ```
 
 Respond with:

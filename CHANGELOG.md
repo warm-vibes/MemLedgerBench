@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+- Made the baseline's online policy seq-aware for deletions and policy changes, matching the
+  evaluator's PolicyOracle at point-in-time queries.
+- Taught the policy-aware BM25 control to refuse with a typed `deny` when its strongest lexical
+  match is blocked for the requester or audience, and aligned the dataset/scoring fallback for
+  should-abstain queries with the generator's `deny` convention.
+- Removed dead code, hardened `python -O` invariants, and deduplicated the percentile helper.
+- Documented the `contextual_integrity` gate reason, repetition-scaled violation counts, and why
+  both bundled controls fail the smoke gate; refreshed baseline tables; made README code blocks
+  cross-platform.
+
 ## 0.2.0 — 2026-07-14
 
 - Repositioned the project as an engineering conformance prototype after auditing GateMem, PiSAs,

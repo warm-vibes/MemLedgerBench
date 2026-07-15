@@ -6,7 +6,7 @@ version: 0.2.0
 date-released: 2026-07-14
 license: Apache-2.0
 authors:
-  - name: "MemLedgerBench contributors"
+  - name: "Mira"
 abstract: >-
   A dependency-free evaluation scaffold for recall, membership-time authorization,
   multi-recipient audience intersection, logical deletion, and restore behavior in social-agent

@@ -40,11 +40,13 @@ before ingestion.
 ### Query
 
 ```json
-{"op":"query","query":{"id":"q_1","after_seq":40,"requester_id":"u_1","audience_ids":["u_2"],"active_space_id":"g_1","purpose":"post_to_group","question":"..."}}
+{"op":"query","query":{"id":"q_3f2a9c1d4e5b","after_seq":40,"requester_id":"u_1","audience_ids":["u_2"],"active_space_id":"g_1","purpose":"post_to_group","question":"..."}}
 ```
 
-Evaluator-only task labels, difficulty tags, generation seeds, answer keys, and forbidden-memory
-annotations are never sent. The required response is:
+The `id` is an opaque per-query handle, not the evaluator's semantic query identifier: it carries no
+task or intent information and cannot be used to look up expected behavior. Evaluator-only task
+labels, difficulty tags, generation seeds, answer keys, and forbidden-memory annotations are never
+sent. The required response is:
 
 ```json
 {

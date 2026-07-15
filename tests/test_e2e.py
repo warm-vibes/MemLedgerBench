@@ -91,6 +91,11 @@ class EndToEndTest(unittest.TestCase):
         self.assertTrue(all("answer" not in query for query in adapter.queries))
         self.assertTrue(all("gold_evidence_ids" not in query for query in adapter.queries))
         self.assertTrue(all("task" not in query and "tags" not in query for query in adapter.queries))
+        gold_ids = {str(query["id"]) for query in dataset.queries}
+        wire_ids = [str(query["id"]) for query in adapter.queries]
+        self.assertTrue(all(wire_id not in gold_ids for wire_id in wire_ids))
+        self.assertTrue(all(wire_id.startswith("q_") for wire_id in wire_ids))
+        self.assertEqual(len(dataset.queries), len(set(wire_ids)))
 
     def test_jsonl_product_protocol(self) -> None:
         script = Path(__file__).resolve().parents[1] / "examples" / "unsafe_jsonl_adapter.py"

@@ -90,7 +90,7 @@ def _run_queries(
     for query in sorted(queries, key=lambda item: str(item["id"])):
         for repetition in range(repetitions):
             started = time.perf_counter()
-            response = adapter.answer(_public_query(query))
+            response = adapter.answer(_public_query(query, dataset.scenario_id))
             latency_ms = (time.perf_counter() - started) * 1000
             raw_response = {
                 "answer": response.answer,
@@ -132,9 +132,8 @@ def _public_event(event: dict[str, Any]) -> dict[str, Any]:
     return copy.deepcopy({key: value for key, value in event.items() if key in allowed})
 
 
-def _public_query(query: dict[str, Any]) -> dict[str, Any]:
+def _public_query(query: dict[str, Any], scenario_id: str) -> dict[str, Any]:
     allowed = {
-        "id",
         "after_seq",
         "requester_id",
         "audience_ids",
@@ -142,7 +141,21 @@ def _public_query(query: dict[str, Any]) -> dict[str, Any]:
         "purpose",
         "question",
     }
-    return copy.deepcopy({key: value for key, value in query.items() if key in allowed})
+    public = copy.deepcopy({key: value for key, value in query.items() if key in allowed})
+    public["id"] = _opaque_query_id(scenario_id, str(query["id"]))
+    return public
+
+
+def _opaque_query_id(scenario_id: str, query_id: str) -> str:
+    """Deterministic, non-semantic handle so the adapter cannot read a query's
+
+    intent from labels such as ``q_deleted_memory``. Stable across runs to keep
+    results reproducible; salted by scenario so handles do not correlate across
+    scenarios.
+    """
+
+    digest = hashlib.sha256(f"{scenario_id}\x00{query_id}".encode("utf-8")).hexdigest()
+    return f"q_{digest[:12]}"
 
 
 def _with_derived_forbidden(

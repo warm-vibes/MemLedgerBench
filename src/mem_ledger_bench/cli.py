@@ -2,13 +2,15 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
 from typing import Any
 
+from . import __version__
 from .adapters import JsonlCommandAdapter, LexicalAdapter, ReferenceControlAdapter
 from .dataset import DatasetValidationError, load_dataset, save_dataset
-from .generator import SCALES, generate_dataset
+from .generator import SCALES, generate_dataset, seal_dataset
 from .locomo import import_locomo
 from .runner import run_benchmark
 from .suite import aggregate_world_results
@@ -24,6 +26,15 @@ def build_parser() -> argparse.ArgumentParser:
     generate = subparsers.add_parser("generate", help="generate a deterministic synthetic world")
     generate.add_argument("--scale", choices=sorted(SCALES), default="tiny")
     generate.add_argument("--seed", type=int, default=7)
+    generate.add_argument(
+        "--sealed",
+        action="store_true",
+        help="seal the world with opaque, nonce-salted identifiers (for the sealed track)",
+    )
+    generate.add_argument(
+        "--nonce",
+        help="sealing nonce (defaults to the seed); use a private value for real sealed sets",
+    )
     generate.add_argument("--out", type=Path, required=True)
 
     validate = subparsers.add_parser("validate", help="validate a dataset and gold policy labels")
@@ -72,6 +83,23 @@ def build_parser() -> argparse.ArgumentParser:
     locomo = subparsers.add_parser("import-locomo", help="convert official locomo10.json")
     locomo.add_argument("input", type=Path)
     locomo.add_argument("--out-dir", type=Path, required=True)
+
+    sealed = subparsers.add_parser(
+        "sealed-run",
+        help="run a submission against a sealed world, emitting only result + manifest",
+    )
+    sealed.add_argument("dataset", type=Path)
+    sealed.add_argument(
+        "--command",
+        dest="adapter_command",
+        required=True,
+        help="JSONL adapter process command for the submission",
+    )
+    sealed.add_argument("--out-dir", type=Path, required=True)
+    sealed.add_argument("--top-k", type=int, default=5)
+    sealed.add_argument("--timeout", type=float, default=30.0)
+    sealed.add_argument("--repetitions", type=int, default=3)
+    sealed.add_argument("--no-recovery", action="store_true")
     return parser
 
 
@@ -80,9 +108,13 @@ def main(argv: list[str] | None = None) -> int:
     try:
         if args.action == "generate":
             dataset = generate_dataset(scale=args.scale, seed=args.seed)
+            if args.sealed:
+                nonce = args.nonce if args.nonce is not None else str(args.seed)
+                dataset = seal_dataset(dataset, nonce)
             save_dataset(dataset, args.out)
+            sealed_note = " (sealed)" if args.sealed else ""
             print(
-                f"generated {dataset.scenario_id}: {len(dataset.entities)} users/entities, "
+                f"generated {dataset.scenario_id}{sealed_note}: {len(dataset.entities)} users/entities, "
                 f"{len(dataset.spaces)} spaces, {len(dataset.events)} events, "
                 f"{len(dataset.queries)} queries -> {args.out}"
             )
@@ -187,10 +219,45 @@ def main(argv: list[str] | None = None) -> int:
                 save_dataset(dataset, args.out_dir / f"{dataset.scenario_id}.json")
             print(f"converted {len(datasets)} LoCoMo scenarios -> {args.out_dir}")
             return 0
+        if args.action == "sealed-run":
+            dataset = load_dataset(args.dataset)
+            adapter = JsonlCommandAdapter(args.adapter_command, timeout_seconds=args.timeout)
+            result = run_benchmark(
+                dataset,
+                adapter,
+                repetitions=args.repetitions,
+                perform_recovery=not args.no_recovery,
+            )
+            args.out_dir.mkdir(parents=True, exist_ok=True)
+            _write_json(result, args.out_dir / "result.json")
+            metadata = dataset.raw.get("metadata", {})
+            manifest = {
+                "format_version": "0.2",
+                "created_at": result["created_at"],
+                "scenario_id": result["scenario_id"],
+                "dataset_sha256": result["dataset_sha256"],
+                "sealed": bool(metadata.get("sealed", False)),
+                "seed": metadata.get("seed"),
+                "scale": metadata.get("scale"),
+                "tool_version": _tool_version(),
+                "image_digest": os.environ.get("MLB_IMAGE_DIGEST"),
+                "run_config": result["run_config"],
+                "safe_memory_score": result["summary"]["safe_memory_score"],
+                "deployment_gate_pass": result["summary"]["deployment_gate_pass"],
+                "ranking_eligible": result["summary"]["ranking_eligible"],
+            }
+            _write_json(manifest, args.out_dir / "manifest.json")
+            _print_summary(result)
+            print(f"sealed-run -> {args.out_dir}/result.json + manifest.json")
+            return 0
     except (DatasetValidationError, ValueError, RuntimeError, OSError, json.JSONDecodeError) as error:
         print(f"error: {error}", file=sys.stderr)
         return 2
     raise AssertionError(f"unhandled action {args.action!r}")
+
+
+def _tool_version() -> str:
+    return __version__
 
 
 def _read_json(path: Path) -> dict[str, Any]:

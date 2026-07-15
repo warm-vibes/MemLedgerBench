@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import hashlib
 import math
 import random
@@ -602,6 +603,70 @@ def generate_dataset(*, scale: str = "tiny", seed: int = 7) -> BenchmarkDataset:
     dataset = BenchmarkDataset(raw)
     dataset.validate()
     return dataset
+
+
+def seal_dataset(dataset: BenchmarkDataset, nonce: str) -> BenchmarkDataset:
+    """Return a sealed twin with opaque, nonce-salted identifiers.
+
+    Every entity, space, event, and query id (and the scenario id) is replaced by
+    a deterministic hash so a submission cannot infer structure or intent from
+    semantic names such as ``m_prompt_injection``. Free text (``observed_text``,
+    display names, gold answers) is untouched, and all cross-references are rewritten
+    consistently, so the sealed world scores identically to its public twin.
+    """
+
+    raw = copy.deepcopy(dataset.raw)
+    remap: dict[tuple[str, str], str] = {}
+
+    def ident(kind: str, original: Any) -> str:
+        key = (kind, str(original))
+        if key not in remap:
+            digest = hashlib.sha256(
+                f"{nonce}|{kind}|{original}".encode("utf-8")
+            ).hexdigest()
+            remap[key] = f"{kind}_{digest[:12]}"
+        return remap[key]
+
+    for entity in raw["entities"]:
+        entity["id"] = ident("u", entity["id"])
+    for space in raw["spaces"]:
+        space["id"] = ident("s", space["id"])
+    for event in raw["events"]:
+        event["id"] = ident("e", event["id"])
+        for field in ("target_event_id", "reply_to", "thread_id"):
+            if event.get(field) is not None:
+                event[field] = ident("e", event[field])
+        if event.get("space_id") is not None:
+            event["space_id"] = ident("s", event["space_id"])
+        for field in ("user_id", "author_id", "requested_by"):
+            if event.get(field) is not None:
+                event[field] = ident("u", event[field])
+        if isinstance(event.get("mentions"), list):
+            event["mentions"] = [ident("u", user) for user in event["mentions"]]
+    for query in raw["queries"]:
+        query["id"] = ident("q", query["id"])
+        query["requester_id"] = ident("u", query["requester_id"])
+        if isinstance(query.get("audience_ids"), list):
+            query["audience_ids"] = [ident("u", user) for user in query["audience_ids"]]
+        if query.get("active_space_id") is not None:
+            query["active_space_id"] = ident("s", query["active_space_id"])
+        if isinstance(query.get("gold_evidence_ids"), list):
+            query["gold_evidence_ids"] = [ident("e", ev) for ev in query["gold_evidence_ids"]]
+        if isinstance(query.get("forbidden_evidence"), dict):
+            query["forbidden_evidence"] = {
+                ident("e", ev): reason for ev, reason in query["forbidden_evidence"].items()
+            }
+
+    raw["scenario_id"] = "sealed-" + hashlib.sha256(
+        f"{nonce}|{dataset.scenario_id}".encode("utf-8")
+    ).hexdigest()[:12]
+    metadata = raw.setdefault("metadata", {})
+    metadata["sealed"] = True
+    metadata["nonce_sha256"] = hashlib.sha256(nonce.encode("utf-8")).hexdigest()
+
+    sealed = BenchmarkDataset(raw)
+    sealed.validate()
+    return sealed
 
 
 def _add_graph_noise(

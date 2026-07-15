@@ -104,6 +104,24 @@ labels, generator seeds, or canonical voice transcripts. The current command ada
 sandboxed**: run only code you trust. It inherits the operator's environment, filesystem access, and
 network context. See [the adapter protocol](docs/adapter_protocol.md) and [security policy](SECURITY.md).
 
+Worked adapter examples for open memory systems live in `examples/` (integration references, not
+leaderboard entries — see [docs/example-results.md](docs/example-results.md)):
+
+```sh
+# Mem0 (pip install mem0ai; needs OPENAI_API_KEY for gpt-4o-mini + embeddings)
+mem-ledger-bench run data/fixtures/tiny_social.json --adapter command \
+  --command "python examples/mem0_adapter.py" --repetitions 3 --out results/mem0-tiny.json
+
+# Cognee (pip install cognee; LLM_API_KEY/LLM_MODEL + EMBEDDING_* env; cognify is slow — small worlds)
+mem-ledger-bench run data/fixtures/tiny_social.json --adapter command \
+  --command "python examples/cognee_adapter.py" --repetitions 3 --no-recovery --timeout 300 \
+  --out results/cognee-tiny.json
+```
+
+Each example wraps the vendor library for retrieval and keeps the authorization gate in the adapter
+(reconstructed online from the event stream), because a memory store does not know the scenario's
+audience and deletion rules. Header comments in each file document the split and the exact env vars.
+
 ## Interpret results carefully
 
 - `task_utility`: task-macro correctness, including the required typed decision;

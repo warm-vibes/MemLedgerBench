@@ -13,3 +13,8 @@ data/generated/
 data/private/
 sealed/
 out/
+
+# vendor adapter venvs and run logs (examples)
+.venv-*/
+results/*.err
+results/*.responses.jsonl

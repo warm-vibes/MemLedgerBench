@@ -16,7 +16,7 @@ from .suite import aggregate_world_results
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        prog="social-memory-bench",
+        prog="mem-ledger-bench",
         description="Permission-aware lifecycle benchmark for social-agent memory",
     )
     subparsers = parser.add_subparsers(dest="action", required=True)

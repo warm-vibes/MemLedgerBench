@@ -6,7 +6,7 @@ are reported as vendor claims, not as an apples-to-apples leaderboard.
 
 ## Executive verdict
 
-SocialMemBench should not be positioned as the first multi-user, group-memory, privacy, deletion, or
+MemLedgerBench should not be positioned as the first multi-user, group-memory, privacy, deletion, or
 recovery benchmark. Those broad claims are already occupied.
 
 The credible v0.2 position is:
@@ -24,8 +24,8 @@ product connectors, and continuous regression—not from public synthetic templa
 
 | Benchmark | Strongest established coverage | Important difference or overlap |
 |---|---|---|
-| [GateMem](https://arxiv.org/abs/2606.18829) / [official repo](https://github.com/rzhub/GateMem) | 91 long multi-party episodes, 2,218 hidden checkpoints, legitimate utility, contextual access control, and explicit deletion/active forgetting | Closest collision. SocialMemBench must not claim first multi-principal governance or forgetting. Remaining angle: membership-history policies, multiple output recipients, evidence-ID oracle, and restore/tombstone mechanics. |
-| [PiSAs](https://arxiv.org/abs/2607.05318) | User and task appropriateness across outputs, inter-agent communication, shared memory, and agent topologies | Stronger contextual-integrity breadth; current SocialMemBench has only one exact-string contextual case. |
+| [GateMem](https://arxiv.org/abs/2606.18829) / [official repo](https://github.com/rzhub/GateMem) | 91 long multi-party episodes, 2,218 hidden checkpoints, legitimate utility, contextual access control, and explicit deletion/active forgetting | Closest collision. MemLedgerBench must not claim first multi-principal governance or forgetting. Remaining angle: membership-history policies, multiple output recipients, evidence-ID oracle, and restore/tombstone mechanics. |
+| [PiSAs](https://arxiv.org/abs/2607.05318) | User and task appropriateness across outputs, inter-agent communication, shared memory, and agent topologies | Stronger contextual-integrity breadth; current MemLedgerBench has only one exact-string contextual case. |
 | [GroupMemBench](https://arxiv.org/abs/2605.14498) | Group dynamics, speaker-grounded belief, audience language, ambiguity, updates, multi-hop, temporal reasoning, and abstention | Stronger social reasoning breadth; no formal membership-time ACL/deletion/recovery track. |
 | [EverMemBench](https://arxiv.org/abs/2602.01313) / [official repo](https://github.com/EverMind-AI/EverMemBench) | Multi-party, multi-group interleaved histories beyond one million tokens and 1,000+ QA | Stronger scale and collaborative complexity; no formal authorization/deletion lifecycle. |
 | [CIMemories](https://arxiv.org/abs/2511.14937) / [official repo](https://github.com/facebookresearch/CIMemories) | Contextual-integrity profiles, disclosure/coverage, and repeated-run privacy instability | Stronger privacy evaluation; not a changing social membership event stream. |
@@ -60,7 +60,7 @@ product connectors, and continuous regression—not from public synthetic templa
 | [LangMem](https://github.com/langchain-ai/langmem) | Semantic/episodic/procedural memory tools and developer-defined namespaces | Security and lifecycle semantics belong to the application/store; a neutral harness is valuable. |
 
 Vendor benchmark numbers are not directly comparable. Dataset versions, ingestion/backfill, reader
-models, judges, retrieval budgets, top-k, agent tools, and exclusions differ. SocialMemBench should
+models, judges, retrieval budgets, top-k, agent tools, and exclusions differ. MemLedgerBench should
 run products through one declared protocol rather than reproduce marketing tables.
 
 ## Audit of our value

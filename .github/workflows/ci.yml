@@ -17,4 +17,4 @@ jobs:
           python-version: "3.11"
       - run: python -m pip install -e .
       - run: python -m unittest discover -s tests -v
-      - run: social-memory-bench validate data/fixtures/tiny_social.json
+      - run: mem-ledger-bench validate data/fixtures/tiny_social.json

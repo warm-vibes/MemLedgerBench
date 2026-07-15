@@ -846,7 +846,7 @@
     }
   ],
   "metadata": {
-    "generator": "social_memory_bench.generator",
+    "generator": "mem_ledger_bench.generator",
     "seed": 7,
     "scale": "tiny",
     "config": {

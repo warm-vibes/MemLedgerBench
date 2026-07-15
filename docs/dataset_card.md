@@ -1,4 +1,4 @@
-# Dataset card: SocialMemBench synthetic fixture
+# Dataset card: MemLedgerBench synthetic fixture
 
 ## Summary
 
@@ -9,7 +9,7 @@ product-regression testing.
 ## Version and provenance
 
 - Benchmark version: `0.2`
-- Generator: `social_memory_bench.generator`
+- Generator: `mem_ledger_bench.generator`
 - Public fixture seed: `7`
 - Public fixture scale: `tiny`
 - Contents: 5 synthetic users/entities, 5 spaces, 27 events, 16 queries

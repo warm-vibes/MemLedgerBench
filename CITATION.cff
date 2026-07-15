@@ -1,11 +1,11 @@
 cff-version: 1.2.0
 message: "If you use this prototype, cite the repository version and audit date."
-title: "SocialMemBench: a social-memory lifecycle conformance prototype"
+title: "MemLedgerBench: a social-memory lifecycle conformance prototype"
 type: software
 version: 0.2.0
 date-released: 2026-07-14
 authors:
-  - name: "SocialMemBench contributors"
+  - name: "MemLedgerBench contributors"
 abstract: >-
   A dependency-free evaluation scaffold for recall, membership-time authorization,
   multi-recipient audience intersection, logical deletion, and restore behavior in social-agent

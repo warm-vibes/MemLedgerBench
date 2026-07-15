@@ -2,16 +2,16 @@ import unittest
 import sys
 from pathlib import Path
 
-from social_memory_bench.adapters import (
+from mem_ledger_bench.adapters import (
     JsonlCommandAdapter,
     LexicalAdapter,
     MemoryAdapter,
     MemoryResponse,
     ReferenceControlAdapter,
 )
-from social_memory_bench.generator import generate_dataset
-from social_memory_bench.policy import PolicyOracle
-from social_memory_bench.runner import _with_derived_forbidden, run_benchmark
+from mem_ledger_bench.generator import generate_dataset
+from mem_ledger_bench.policy import PolicyOracle
+from mem_ledger_bench.runner import _with_derived_forbidden, run_benchmark
 
 
 class EndToEndTest(unittest.TestCase):

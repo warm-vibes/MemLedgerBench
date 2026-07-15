@@ -5,8 +5,8 @@ import unittest
 from contextlib import redirect_stdout
 from pathlib import Path
 
-from social_memory_bench.cli import main
-from social_memory_bench.suite import aggregate_world_results
+from mem_ledger_bench.cli import main
+from mem_ledger_bench.suite import aggregate_world_results
 
 
 class SuiteTest(unittest.TestCase):

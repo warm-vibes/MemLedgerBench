@@ -1,8 +1,8 @@
 import copy
 import unittest
 
-from social_memory_bench.dataset import BenchmarkDataset, DatasetValidationError
-from social_memory_bench.generator import generate_dataset
+from mem_ledger_bench.dataset import BenchmarkDataset, DatasetValidationError
+from mem_ledger_bench.generator import generate_dataset
 
 
 class DatasetValidationTest(unittest.TestCase):

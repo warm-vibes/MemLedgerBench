@@ -2,7 +2,7 @@
 
 ## Prototype boundary
 
-SocialMemBench 0.2 is a development harness, not a security boundary. Its `--adapter command` mode
+MemLedgerBench 0.2 is a development harness, not a security boundary. Its `--adapter command` mode
 starts a normal local process. That process inherits the operator's filesystem permissions,
 environment, and network context.
 

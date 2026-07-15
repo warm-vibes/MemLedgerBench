@@ -1,9 +1,9 @@
-# SocialMemBench
+# MemLedgerBench
 
 > **Prototype status (v0.2):** a shareable engineering conformance harness, not a trusted public
 > leaderboard, compliance certification, or proof of physical erasure.
 
-SocialMemBench replays memory events from DMs, groups, and channels and tests two things together:
+MemLedgerBench replays memory events from DMs, groups, and channels and tests two things together:
 
 1. whether a social agent recalls the right fact; and
 2. whether every cited memory was legal for the requester **and every output recipient** at that
@@ -55,12 +55,12 @@ Python 3.11 or newer is required.
 
 ```sh
 python -m pip install -e .
-social-memory-bench validate data/fixtures/tiny_social.json
-social-memory-bench run data/fixtures/tiny_social.json --adapter bm25-policy --repetitions 3 --out results/policy.json
-social-memory-bench run data/fixtures/tiny_social.json --adapter bm25-unsafe --repetitions 3 --out results/unsafe.json
-social-memory-bench run data/fixtures/tiny_social.json --adapter reference-control --repetitions 3 --out results/reference.json
-social-memory-bench compare results/policy.json results/unsafe.json
-social-memory-bench suite --config configs/benchmark_matrix.json --adapter bm25-policy --out results/suite.json
+mem-ledger-bench validate data/fixtures/tiny_social.json
+mem-ledger-bench run data/fixtures/tiny_social.json --adapter bm25-policy --repetitions 3 --out results/policy.json
+mem-ledger-bench run data/fixtures/tiny_social.json --adapter bm25-unsafe --repetitions 3 --out results/unsafe.json
+mem-ledger-bench run data/fixtures/tiny_social.json --adapter reference-control --repetitions 3 --out results/reference.json
+mem-ledger-bench compare results/policy.json results/unsafe.json
+mem-ledger-bench suite --config configs/benchmark_matrix.json --adapter bm25-policy --out results/suite.json
 python -m unittest discover -s tests -v
 ```
 
@@ -87,7 +87,7 @@ scale conditions; the suite clusters them before bootstrapping.
 Run a trusted local adapter as a persistent process that exchanges one JSON object per line:
 
 ```sh
-social-memory-bench run data/fixtures/tiny_social.json --adapter command \
+mem-ledger-bench run data/fixtures/tiny_social.json --adapter command \
   --command "node path/to/your-adapter.js" --repetitions 5 --out results/your-system.json
 ```
 
@@ -127,7 +127,7 @@ high.
 Convert the official `locomo10.json` without inventing access-control labels:
 
 ```sh
-social-memory-bench import-locomo path/to/locomo10.json --out-dir data/generated/locomo
+mem-ledger-bench import-locomo path/to/locomo10.json --out-dir data/generated/locomo
 ```
 
 The converter preserves an explicit mapping from original evidence identifiers to valid benchmark
@@ -141,7 +141,7 @@ IDs. LoCoMo is licensed CC BY-NC 4.0; verify its terms before commercial reuse.
 - `docs/benchmark_spec.md` — target research design versus current implementation;
 - `docs/dataset_card.md` — fixture contents, intended use, and limitations;
 - `docs/privacy_threat_model.md` — desired security properties and known enforcement gaps;
-- `src/social_memory_bench/` — generator, policy oracle, adapters, runner, and scoring;
+- `src/mem_ledger_bench/` — generator, policy oracle, adapters, runner, and scoring;
 - `tests/` — 21 deterministic unit and end-to-end tests.
 
 ## Data, privacy, and licensing

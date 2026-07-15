@@ -591,7 +591,7 @@ def generate_dataset(*, scale: str = "tiny", seed: int = 7) -> BenchmarkDataset:
         "events": builder.events,
         "queries": builder.queries,
         "metadata": {
-            "generator": "social_memory_bench.generator",
+            "generator": "mem_ledger_bench.generator",
             "seed": seed,
             "scale": scale,
             "config": config,

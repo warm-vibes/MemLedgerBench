@@ -2,7 +2,7 @@
 
 ## Objective
 
-Continue developing SocialMemBench as a vendor-neutral conformance and research harness for
+Continue developing MemLedgerBench as a vendor-neutral conformance and research harness for
 permission-aware memory in social/chat agents.
 
 Start with `README.md`, `docs/competitive_audit.md`, and `docs/release_audit.md`. Treat the latter two
@@ -11,7 +11,7 @@ GateMem and PiSAs materially overlap those broad claims.
 
 ## Current state
 
-- Package/version: `social-memory-bench` 0.2.0, Python 3.11+, standard library only.
+- Package/version: `mem-ledger-bench` 0.2.0, Python 3.11+, standard library only.
 - Tests: 21 passing with `python -m unittest discover -s tests -v`.
 - Public fixture: 5 entities, 5 spaces, 27 events, 16 queries.
 - Scales: small/stress add noise but not new structural query templates.
@@ -26,9 +26,9 @@ GateMem and PiSAs materially overlap those broad claims.
 ```powershell
 python -m pip install -e .
 python -m unittest discover -s tests -v
-social-memory-bench validate data/fixtures/tiny_social.json
-social-memory-bench run data/fixtures/tiny_social.json --adapter bm25-policy --repetitions 3 --out results/policy.json
-social-memory-bench suite --config configs/benchmark_matrix.json --adapter bm25-policy --out results/suite.json
+mem-ledger-bench validate data/fixtures/tiny_social.json
+mem-ledger-bench run data/fixtures/tiny_social.json --adapter bm25-policy --repetitions 3 --out results/policy.json
+mem-ledger-bench suite --config configs/benchmark_matrix.json --adapter bm25-policy --out results/suite.json
 ```
 
 Use the active environment's Python interpreter; do not bake any machine-specific runtime path into

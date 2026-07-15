@@ -1,7 +1,7 @@
 import unittest
 
-from social_memory_bench.generator import generate_dataset
-from social_memory_bench.policy import PolicyOracle
+from mem_ledger_bench.generator import generate_dataset
+from mem_ledger_bench.policy import PolicyOracle
 
 
 class PolicyOracleTest(unittest.TestCase):

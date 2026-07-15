@@ -3,7 +3,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from social_memory_bench.locomo import import_locomo
+from mem_ledger_bench.locomo import import_locomo
 
 
 class LoCoMoImportTest(unittest.TestCase):

@@ -1,6 +1,6 @@
 import unittest
 
-from social_memory_bench.scoring import aggregate_scores, score_response
+from mem_ledger_bench.scoring import aggregate_scores, score_response
 
 
 class ScoringTest(unittest.TestCase):

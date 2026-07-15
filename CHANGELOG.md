@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Replaced the semantic query id sent to adapters with an opaque, scenario-salted handle so the
+  system under test can no longer read a query's expected decision from its label.
 - Made the baseline's online policy seq-aware for deletions and policy changes, matching the
   evaluator's PolicyOracle at point-in-time queries.
 - Taught the policy-aware BM25 control to refuse with a typed `deny` when its strongest lexical

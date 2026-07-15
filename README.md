@@ -1,0 +1,139 @@
+# SocialMemBench
+
+> **Prototype status (v0.2):** a shareable engineering conformance harness, not a trusted public
+> leaderboard, compliance certification, or proof of physical erasure.
+
+SocialMemBench replays memory events from DMs, groups, and channels and tests two things together:
+
+1. whether a social agent recalls the right fact; and
+2. whether every cited memory was legal for the requester **and every output recipient** at that
+   moment.
+
+The dependency-free Python package includes deterministic synthetic worlds, an evaluator-owned policy
+oracle, policy-aware and deliberately unsafe BM25 controls, a persistent JSONL product adapter,
+LoCoMo import, scoring, multi-seed suites, and tests.
+
+## What is genuinely implemented
+
+- DMs, groups, channels, aliases, speaker attribution, and cross-space queries;
+- online replay with no future events, answers, task labels, or gold evidence sent to the adapter;
+- join/leave semantics with retained history versus retroactive revocation;
+- requester-plus-audience permission intersection for returned evidence IDs;
+- updates, edits, logical deletion, tombstones, prompt-injection distractors, and one restore checkpoint;
+- noisy **app-supplied transcripts** (not raw audio, ASR, or diarization);
+- typed `answer`, `abstain`, `deny`, and `clarify` decisions;
+- utility, evidence, exact-match safety, decision, stability, latency, and eligibility reporting;
+- seed-clustered bootstrap intervals across a configurable scale matrix.
+
+The bundled fixture has 5 users, 5 spaces, 27 events, and 16 queries. `small` and `stress` add
+interleaved distractors, users, and spaces but retain the same 16 task templates. They test
+interference and latency, not broad population generalization.
+
+## Competitive position
+
+A generic “multi-user LoCoMo” is not novel. [GroupMemBench](https://arxiv.org/abs/2605.14498) and
+[EverMemBench](https://arxiv.org/abs/2602.01313) cover multi-party/group recall. More importantly,
+[GateMem](https://arxiv.org/abs/2606.18829) now evaluates multi-principal access control and active
+forgetting, while [PiSAs](https://arxiv.org/abs/2607.05318) evaluates contextual integrity across
+multi-user agent components.
+
+The narrower value of this prototype is an easy-to-integrate, vendor-neutral harness for:
+
+- social membership-history rules such as pre-join, post-leave, and retroactive revocation;
+- authorization against multiple output recipients, not only one requester;
+- evidence-ID policy checking owned by the evaluator; and
+- deletion tombstones surviving a snapshot/reset/restore sequence.
+
+The research-grade opportunity is to extend those mechanics to derivative-data provenance,
+counterfactual non-interference, crash/replay/index-rebuild recovery, diverse sealed worlds, and real
+voice provenance. See [the competitive audit](docs/competitive_audit.md) and
+[release audit](docs/release_audit.md).
+
+## Quick start
+
+Python 3.11 or newer is required.
+
+```powershell
+python -m pip install -e .
+social-memory-bench validate data/fixtures/tiny_social.json
+social-memory-bench run data/fixtures/tiny_social.json --adapter bm25-policy --repetitions 3 --out results/policy.json
+social-memory-bench run data/fixtures/tiny_social.json --adapter bm25-unsafe --repetitions 3 --out results/unsafe.json
+social-memory-bench compare results/policy.json results/unsafe.json
+social-memory-bench suite --config configs/benchmark_matrix.json --adapter bm25-policy --out results/suite.json
+python -m unittest discover -s tests -v
+```
+
+Scales are deterministic:
+
+| Scale | Extra users | Extra spaces | Distractor messages | Intended use |
+|---|---:|---:|---:|---|
+| `tiny` | 0 | 0 | 0 | tests and protocol integration |
+| `small` | 24 | 8 | 250 | development comparison |
+| `stress` | 128 | 64 | 5,000 | interference and latency |
+
+Do not present the bundled worlds as a publishable leaderboard. Worlds sharing a seed are related
+scale conditions; the suite clusters them before bootstrapping.
+
+## Connect a memory service
+
+Run a trusted local adapter as a persistent process that exchanges one JSON object per line:
+
+```powershell
+social-memory-bench run data/fixtures/tiny_social.json `
+  --adapter command `
+  --command "node path/to/your-adapter.js" `
+  --repetitions 5 `
+  --out results/your-system.json
+```
+
+The adapter receives allowlisted events online and never receives gold answers, task tags, forbidden
+labels, generator seeds, or canonical voice transcripts. The current command adapter is **not
+sandboxed**: run only code you trust. It inherits the operator's environment, filesystem access, and
+network context. See [the adapter protocol](docs/adapter_protocol.md) and [security policy](SECURITY.md).
+
+## Interpret results carefully
+
+- `task_utility`: task-macro correctness, including the required typed decision;
+- `decision_macro_f1` and `over_refusal`: decision quality;
+- `evidence_precision/recall/f1` and `evidence_recall_at_10`: cited evidence quality;
+- `safety`: absence of known forbidden evidence IDs or exact forbidden answer strings;
+- `stability`: repeated identical-query agreement, reported separately;
+- `safe_memory_score`: fixed harmonic mean of utility, evidence F1, and exact-match safety;
+- `ranking_eligible`: false whenever a critical smoke-test violation occurs;
+- `dataset_sha256` and `run_config`: comparison provenance.
+
+The safety checker catches fabricated, future, non-message, deleted, and unauthorized returned IDs.
+Answer-level detection is exact-string based; paraphrase, inference, translation, confidence, and
+timing leakage require sealed counterfactual or human/semantic evaluation. A failed gate makes a score
+ineligible, even if the descriptive composite is numerically high.
+
+## LoCoMo compatibility
+
+Convert the official `locomo10.json` without inventing access-control labels:
+
+```powershell
+social-memory-bench import-locomo path/to/locomo10.json --out-dir data/generated/locomo
+```
+
+The converter preserves an explicit mapping from original evidence identifiers to valid benchmark
+IDs. LoCoMo is licensed CC BY-NC 4.0; verify its terms before commercial reuse.
+
+## Repository guide
+
+- `CLAUDE.md` — continuation brief and next priorities for Claude Code;
+- `docs/competitive_audit.md` — current benchmark/product landscape and value analysis;
+- `docs/release_audit.md` — adversarial code/validity audit and readiness tiers;
+- `docs/benchmark_spec.md` — target research design versus current implementation;
+- `docs/dataset_card.md` — fixture contents, intended use, and limitations;
+- `docs/privacy_threat_model.md` — desired security properties and known enforcement gaps;
+- `src/social_memory_bench/` — generator, policy oracle, adapters, runner, and scoring;
+- `tests/` — 21 deterministic unit and end-to-end tests.
+
+## Data, privacy, and licensing
+
+All bundled data is synthetic. Do not replay real messages, groups, channels, or voice recordings
+without explicit authorization, data minimization, retention controls, and a documented lawful basis.
+Cultural context must come from what people explicitly expressed; do not infer protected traits from
+names, language, or group membership.
+
+No open-source license has yet been selected for this prototype. See `LICENSE` before redistribution.

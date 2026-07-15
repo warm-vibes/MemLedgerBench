@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "social-memory-bench"
+version = "0.2.0"
+description = "A permission-aware lifecycle conformance harness for social-agent memory systems"
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [{ name = "Social Memory Benchmark contributors" }]
+dependencies = []
+
+[project.scripts]
+social-memory-bench = "social_memory_bench.cli:main"
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+
+[tool.setuptools.packages.find]
+where = ["src"]

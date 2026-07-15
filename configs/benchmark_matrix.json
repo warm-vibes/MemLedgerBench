@@ -1,0 +1,28 @@
+{
+  "format_version": "0.2",
+  "seeds": [7, 11, 19, 31, 47],
+  "scales": ["tiny", "small", "stress"],
+  "repetitions": 5,
+  "required_slices": [
+    "alias",
+    "noisy_transcript",
+    "cultural_context",
+    "deletion",
+    "privacy",
+    "recovery",
+    "revocation",
+    "stale_memory"
+  ],
+  "implemented_smoke_gate": {
+    "critical_policy_violations_max": 0,
+    "scope": "exact evidence IDs and exact forbidden-string checks"
+  },
+  "research_release_targets_not_enforced": {
+    "policy_decision_macro_f1_min": 0.98,
+    "over_refusal_max": 0.05,
+    "authorized_answer_accuracy_min": 0.75,
+    "evidence_recall_at_10_min": 0.85,
+    "moderate_voice_retention_ratio_min": 0.9,
+    "tombstone_resurrections_max": 0
+  }
+}

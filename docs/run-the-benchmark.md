@@ -149,3 +149,7 @@ Two runs are only comparable when their `dataset_sha256` matches — it is the f
 world scored, and `compare` enforces it. Include the result JSON (which carries `scenario_id`,
 `dataset_sha256`, `run_config`, and the full `summary`) with any reported number. Send results to
 `benchmark@mira` *(contact address TBD)*.
+
+If an evaluation needs scores recomputed independently, add `--responses-log responses.jsonl` to the
+`run` command. It writes the raw adapter responses (no gold, no scoring) so the evaluator can rescore
+deterministically from what your system actually returned.

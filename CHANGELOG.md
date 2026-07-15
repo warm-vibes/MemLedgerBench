@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Added `run --responses-log`, which writes the raw adapter responses as JSONL (no gold, no scoring)
+  so scores can be recomputed independently and deterministically from a submission.
 - Added the sealed track: a no-network container runner (`Dockerfile`/`compose.yaml`), a
   `generate --sealed`/`seal_dataset` transform that produces opaque nonce-salted worlds
   (score-preserving), and a `sealed-run` command that emits only a result and a provenance manifest

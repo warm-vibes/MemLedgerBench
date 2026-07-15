@@ -6,6 +6,7 @@ import json
 import time
 from collections import defaultdict
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any
 
 from .adapters import MemoryAdapter
@@ -20,6 +21,7 @@ def run_benchmark(
     *,
     repetitions: int = 1,
     perform_recovery: bool = True,
+    responses_log: str | Path | None = None,
 ) -> dict[str, Any]:
     if repetitions < 1:
         raise ValueError("repetitions must be at least 1")
@@ -31,6 +33,11 @@ def run_benchmark(
     collected, adapter_meta = _collect_responses(
         dataset, adapter, repetitions, perform_recovery
     )
+
+    # The raw responses log is the artifact we rescore from: exactly what the
+    # adapter emitted, keyed by query id, with no gold or scoring mixed in.
+    if responses_log is not None:
+        _write_responses_log(responses_log, collected)
 
     # Phase 2: with every answer locked, build ground truth and score. This ordering
     # is what makes the sealed track trustworthy; keep the two phases separate.
@@ -150,6 +157,27 @@ def _score_collected(
         scored.append(row)
     summary = aggregate_scores(scored, repetitions=repetitions)
     return scored, summary
+
+
+def _write_responses_log(path: str | Path, collected: list[dict[str, Any]]) -> None:
+    """Write the raw adapter responses as JSONL for independent rescoring.
+
+    One object per recorded answer: the query id it answered, the repetition, the
+    measured latency, and the response fields exactly as the adapter returned them.
+    No gold answers, evidence labels, or scoring are included.
+    """
+
+    target = Path(path)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    with target.open("w", encoding="utf-8") as handle:
+        for item in collected:
+            record = {
+                "query_id": item["query"]["id"],
+                "repetition": item["repetition"],
+                "latency_ms": item["latency_ms"],
+                **item["raw_response"],
+            }
+            handle.write(json.dumps(record, ensure_ascii=False) + "\n")
 
 
 def _public_event(event: dict[str, Any]) -> dict[str, Any]:

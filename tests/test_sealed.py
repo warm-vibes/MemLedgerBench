@@ -1,10 +1,12 @@
 import json
+import tempfile
 import unittest
+from pathlib import Path
 
 from mem_ledger_bench import runner as runner_mod
-from mem_ledger_bench.adapters import MemoryAdapter, MemoryResponse, ReferenceControlAdapter
+from mem_ledger_bench.adapters import LexicalAdapter, MemoryAdapter, MemoryResponse, ReferenceControlAdapter
 from mem_ledger_bench.generator import generate_dataset, seal_dataset
-from mem_ledger_bench.runner import run_benchmark
+from mem_ledger_bench.runner import _score_collected, run_benchmark
 
 
 class SealTest(unittest.TestCase):
@@ -80,6 +82,39 @@ class OrderingTest(unittest.TestCase):
         finally:
             runner_mod.PolicyOracle = real_oracle
         self.assertTrue(state["oracle_built"])
+
+
+class ResponsesLogTest(unittest.TestCase):
+    def test_log_rescores_bit_for_bit(self) -> None:
+        dataset = generate_dataset(scale="tiny", seed=7)
+        with tempfile.TemporaryDirectory() as tmp:
+            log_path = Path(tmp) / "responses.jsonl"
+            direct = run_benchmark(
+                dataset,
+                LexicalAdapter(top_k=5, policy_aware=True),
+                repetitions=3,
+                responses_log=log_path,
+            )
+            records = [json.loads(line) for line in log_path.read_text().splitlines() if line]
+
+        # the log carries no gold labels
+        for record in records:
+            self.assertNotIn("gold_evidence_ids", record)
+            self.assertNotIn("forbidden_evidence", record)
+
+        query_by_id = {q["id"]: q for q in dataset.queries}
+        raw_fields = ("answer", "retrieved_event_ids", "decision", "confidence", "metadata")
+        collected = [
+            {
+                "query": query_by_id[record["query_id"]],
+                "raw_response": {field: record.get(field) for field in raw_fields},
+                "latency_ms": record["latency_ms"],
+                "repetition": record["repetition"],
+            }
+            for record in records
+        ]
+        _, summary = _score_collected(dataset, collected, repetitions=3)
+        self.assertEqual(direct["summary"], summary)
 
 
 if __name__ == "__main__":

@@ -56,6 +56,11 @@ def build_parser() -> argparse.ArgumentParser:
     run.add_argument("--timeout", type=float, default=30.0, help="seconds per JSONL operation")
     run.add_argument("--repetitions", type=int, default=1)
     run.add_argument("--no-recovery", action="store_true")
+    run.add_argument(
+        "--responses-log",
+        type=Path,
+        help="also write the raw adapter responses as JSONL, for independent rescoring",
+    )
     run.add_argument("--out", type=Path, required=True)
 
     suite = subparsers.add_parser("suite", help="run a multi-seed, multi-scale benchmark matrix")
@@ -134,9 +139,12 @@ def main(argv: list[str] | None = None) -> int:
                 adapter,
                 repetitions=args.repetitions,
                 perform_recovery=not args.no_recovery,
+                responses_log=args.responses_log,
             )
             _write_json(result, args.out)
             _print_summary(result)
+            if args.responses_log:
+                print(f"responses log -> {args.responses_log}")
             print(f"result -> {args.out}")
             return 0
         if args.action == "suite":

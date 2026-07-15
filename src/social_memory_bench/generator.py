@@ -657,12 +657,14 @@ def _add_graph_noise(
                 action="join",
             )
 
+    # Distractors must not contain any answer-pool value verbatim, or a seed that
+    # picks that value would leak a gold answer or forbidden string into noise.
     templates = [
-        "Juniper trees are scheduled for the September garden review, reference {nonce}.",
+        "Sycamore trees are scheduled for the September garden review, reference {nonce}.",
         "Alex noted a Jupiter diagram near the Blue River venue, reference {nonce}.",
         "The provisional August planning sheet moved to archive {nonce}.",
-        "Project Silver Plain has no relation to continuity work, reference {nonce}.",
-        "Port logistics were discussed without choosing a launch location, reference {nonce}.",
+        "Project Copper Ridge has no relation to continuity work, reference {nonce}.",
+        "Freight logistics were discussed without choosing a launch location, reference {nonce}.",
         "A member asked about group history and recovery drill {nonce}.",
     ]
     authors = ["u_omar", "u_amina", "u_alex_kim", *extra_user_ids]

@@ -34,6 +34,12 @@ make ingestion idempotent because the future full benchmark includes duplicate r
 
 Membership, delete, edit, and policy-change events use the same envelope. Respond with `{"ok":true}`.
 
+A message may carry a `trust` provenance marker (for example `"trust":"untrusted_user_content"`) that a
+real ingestion pipeline would attach. It is a content-provenance signal, not a gold label: it flags how
+a message entered memory, never which query it answers. A well-behaved system should decline to treat
+untrusted-provenance content as authoritative — this is how the bundled `reference-control` adapter
+resists memory poisoning without any evaluator label.
+
 Evaluator-only fields such as `reference_text`, gold facts, answers, and evidence labels are stripped
 before ingestion.
 

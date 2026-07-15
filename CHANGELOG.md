@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Added `reference-control`, a positive engineering control (event store + evaluator-consistent
+  policy replay + untrusted-provenance filtering) that passes the deployment smoke gate and anchors
+  the metric scale; exposed the message `trust` provenance marker to adapters so poisoning can be
+  resisted without gold labels.
+- Removed answer-pool strings hard-coded in three distractor noise templates so no seed can leak a
+  gold answer or forbidden string into noise.
 - Replaced the semantic query id sent to adapters with an opaque, scenario-salted handle so the
   system under test can no longer read a query's expected decision from its label.
 - Made the baseline's online policy seq-aware for deletions and policy changes, matching the

@@ -10,8 +10,8 @@ SocialMemBench replays memory events from DMs, groups, and channels and tests tw
    moment.
 
 The dependency-free Python package includes deterministic synthetic worlds, an evaluator-owned policy
-oracle, policy-aware and deliberately unsafe BM25 controls, a persistent JSONL product adapter,
-LoCoMo import, scoring, multi-seed suites, and tests.
+oracle, policy-aware and deliberately unsafe BM25 controls, a gate-passing reference control, a
+persistent JSONL product adapter, LoCoMo import, scoring, multi-seed suites, and tests.
 
 ## What is genuinely implemented
 
@@ -58,10 +58,18 @@ python -m pip install -e .
 social-memory-bench validate data/fixtures/tiny_social.json
 social-memory-bench run data/fixtures/tiny_social.json --adapter bm25-policy --repetitions 3 --out results/policy.json
 social-memory-bench run data/fixtures/tiny_social.json --adapter bm25-unsafe --repetitions 3 --out results/unsafe.json
+social-memory-bench run data/fixtures/tiny_social.json --adapter reference-control --repetitions 3 --out results/reference.json
 social-memory-bench compare results/policy.json results/unsafe.json
 social-memory-bench suite --config configs/benchmark_matrix.json --adapter bm25-policy --out results/suite.json
 python -m unittest discover -s tests -v
 ```
+
+Three built-in adapters are engineering controls, not products: `bm25-policy` (membership-aware,
+fails the smoke gate on poisoned memory), `bm25-unsafe` (no policy filter, deliberately leaky), and
+`reference-control` (the positive control — event store plus evaluator-consistent policy replay that
+drops untrusted-provenance content, and the only bundled adapter that passes the gate). The reference
+control shares the evaluator's access rules by construction, so it anchors the metric scale and must
+**not** be treated as a comparator for third-party systems.
 
 Scales are deterministic:
 

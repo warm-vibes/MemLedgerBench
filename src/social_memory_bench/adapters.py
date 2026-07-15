@@ -139,13 +139,21 @@ class LexicalAdapter(MemoryAdapter):
             raise RuntimeError("adapter must be reset before use")
         recipients = {str(query["requester_id"]), *map(str, query.get("audience_ids", []))}
         messages = [event for event in self.events if event.get("type") == "message"]
-        if self.policy_aware:
-            messages = [
-                event
-                for event in messages
-                if self.policy.audience_can_view(event, recipients, int(query["after_seq"]))
-            ]
         ranked = _bm25_rank(str(query["question"]), messages)
+        if self.policy_aware:
+            at_seq = int(query["after_seq"])
+            permitted = [
+                (score, event)
+                for score, event in ranked
+                if self.policy.audience_can_view(event, recipients, at_seq)
+            ]
+            if ranked and (not permitted or ranked[0][1] is not permitted[0][1]):
+                return MemoryResponse(
+                    answer="I cannot share that memory with this audience.",
+                    decision="deny",
+                    retrieved_event_ids=[],
+                )
+            ranked = permitted
         selected = [event for _, event in ranked[: self.top_k]]
         if not selected:
             return MemoryResponse(

@@ -226,7 +226,7 @@ class BenchmarkDataset:
                     errors.append(f"query {query_id!r} has invalid forbidden reason {reason!r}")
             expected_decision = query.get(
                 "expected_decision",
-                "abstain" if query.get("should_abstain", False) else "answer",
+                "deny" if query.get("should_abstain", False) else "answer",
             )
             if expected_decision not in {"answer", "abstain", "deny", "clarify"}:
                 errors.append(f"query {query_id!r} has invalid expected_decision")

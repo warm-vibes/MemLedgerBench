@@ -41,7 +41,7 @@ def score_response(
     abstained = is_abstention(answer, decision)
     should_abstain = bool(query.get("should_abstain", False))
     expected_decision = str(
-        query.get("expected_decision", "abstain" if should_abstain else "answer")
+        query.get("expected_decision", "deny" if should_abstain else "answer")
     )
     decision_hit = float(decision == expected_decision)
     if should_abstain:

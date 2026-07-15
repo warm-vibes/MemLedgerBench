@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Renamed the project to **MemLedgerBench** (package `mem_ledger_bench`, CLI `mem-ledger-bench`); the
+  former name collided with a published benchmark (SocialMemBench, Owolabi, arXiv 2605.17789).
+- Dual-licensed the release: Apache-2.0 for source code, CC BY 4.0 for the `data/` datasets.
+- Corrected three citations (EverMemBench 2,400 QA, Letta memory-blocks doc URL, OmniMemEval
+  two-track / six-stage protocol) and added the SocialMemBench and AFA "first"-claims to the
+  claims-to-avoid list.
 - Added `reference-control`, a positive engineering control (event store + evaluator-consistent
   policy replay + untrusted-provenance filtering) that passes the deployment smoke gate and anchors
   the metric scale; exposed the message `trust` provenance marker to adapters so poisoning can be

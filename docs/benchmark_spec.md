@@ -23,7 +23,7 @@ voice notes, and shared artifacts over time.
 | [PiSAs](https://arxiv.org/abs/2607.05318) | contextual integrity across outputs, inter-agent communication, agents, and shared memory with user and task appropriateness | no long social membership/deletion/recovery event stream |
 | [CIMemories](https://arxiv.org/abs/2511.14937) ([official repo](https://github.com/facebookresearch/CIMemories)) | contextual-integrity privacy for rich persistent profiles; demonstrates violation/coverage and run-to-run stability failures | not a long connected multi-group event stream and no membership lifecycle |
 | [Collaborative Memory](https://arxiv.org/abs/2505.18279) | formal dynamic, asymmetric read/write policies and provenance for shared memory | a framework rather than the social/voice benchmark proposed here |
-| [OmniMemEval](https://github.com/MemTensor/OmniMemEval) | common evaluation protocol with cleanup, backup, restore, and test stages | no social-principal authorization or tombstone non-resurrection metric |
+| [OmniMemEval](https://github.com/MemTensor/OmniMemEval) | two-track harness; its Agent Memory track uses a six-stage protocol (training, cleanup, backup, restore, memory settling, test), while its User Memory track wraps existing suites | no social-principal authorization or tombstone non-resurrection metric |
 | [RHELM](https://microsoft.github.io/RHELM/) | cross-source personal memory over conversations, email, and attachments | no mutable social-group ACL or voice lifecycle |
 
 **Inference from this landscape:** a plain “multi-user LoCoMo” is not distinctive, and GateMem already

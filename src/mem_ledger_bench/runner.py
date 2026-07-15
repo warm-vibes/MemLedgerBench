@@ -24,17 +24,58 @@ def run_benchmark(
     if repetitions < 1:
         raise ValueError("repetitions must be at least 1")
     dataset.validate()
+
+    # Phase 1: replay the online timeline and record every adapter answer. Ground
+    # truth (the policy oracle and gold-derived forbidden evidence) is deliberately
+    # NOT touched here, so no answer can be scored against or influenced by it.
+    collected, adapter_meta = _collect_responses(
+        dataset, adapter, repetitions, perform_recovery
+    )
+
+    # Phase 2: with every answer locked, build ground truth and score. This ordering
+    # is what makes the sealed track trustworthy; keep the two phases separate.
+    scored, summary = _score_collected(dataset, collected, repetitions)
+
+    return {
+        "format_version": "0.2",
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "scenario_id": dataset.scenario_id,
+        "dataset_sha256": _dataset_hash(dataset),
+        "dataset_metadata": {
+            key: dataset.raw.get("metadata", {}).get(key)
+            for key in ("scale", "seed", "source", "sealed")
+            if key in dataset.raw.get("metadata", {})
+        },
+        "adapter": adapter_meta["name"],
+        "run_config": {
+            "repetitions": repetitions,
+            "perform_recovery": perform_recovery,
+            "adapter": adapter_meta["config"],
+        },
+        "summary": summary,
+        "system_stats": adapter_meta["stats"],
+        "responses": scored,
+    }
+
+
+def _collect_responses(
+    dataset: BenchmarkDataset,
+    adapter: MemoryAdapter,
+    repetitions: int,
+    perform_recovery: bool,
+) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    """Replay events and gather adapter answers without consulting ground truth."""
+
     queries_by_seq: dict[int, list[dict[str, Any]]] = defaultdict(list)
     for query in dataset.queries:
         queries_by_seq[int(query["after_seq"])].append(query)
 
-    scored: list[dict[str, Any]] = []
+    collected: list[dict[str, Any]] = []
     public_scenario = dataset.public_scenario()
-    oracle = PolicyOracle(dataset)
     try:
         adapter.reset(copy.deepcopy(public_scenario))
-        _run_queries(
-            queries_by_seq.pop(0, []), adapter, repetitions, scored, oracle, dataset
+        _answer_queries(
+            queries_by_seq.pop(0, []), adapter, repetitions, collected, dataset.scenario_id
         )
         for event in dataset.events:
             if event.get("type") == "checkpoint" and perform_recovery:
@@ -43,66 +84,72 @@ def run_benchmark(
                 adapter.restore(snapshot)
             else:
                 adapter.ingest(_public_event(event))
-            _run_queries(
+            _answer_queries(
                 queries_by_seq.pop(int(event["seq"]), []),
                 adapter,
                 repetitions,
-                scored,
-                oracle,
-                dataset,
+                collected,
+                dataset.scenario_id,
             )
         if queries_by_seq:
             remaining = sorted(queries_by_seq)
             raise RuntimeError(f"queries were not executed at sequences {remaining}")
-        summary = aggregate_scores(scored, repetitions=repetitions)
-        return {
-            "format_version": "0.2",
-            "created_at": datetime.now(timezone.utc).isoformat(),
-            "scenario_id": dataset.scenario_id,
-            "dataset_sha256": _dataset_hash(dataset),
-            "dataset_metadata": {
-                key: dataset.raw.get("metadata", {}).get(key)
-                for key in ("scale", "seed", "source")
-                if key in dataset.raw.get("metadata", {})
-            },
-            "adapter": adapter.name,
-            "run_config": {
-                "repetitions": repetitions,
-                "perform_recovery": perform_recovery,
-                "adapter": adapter.config(),
-            },
-            "summary": summary,
-            "system_stats": adapter.stats(),
-            "responses": scored,
+        adapter_meta = {
+            "name": adapter.name,
+            "config": adapter.config(),
+            "stats": adapter.stats(),
         }
+        return collected, adapter_meta
     finally:
         adapter.close()
 
 
-def _run_queries(
+def _answer_queries(
     queries: list[dict[str, Any]],
     adapter: MemoryAdapter,
     repetitions: int,
-    scored: list[dict[str, Any]],
-    oracle: PolicyOracle,
-    dataset: BenchmarkDataset,
+    collected: list[dict[str, Any]],
+    scenario_id: str,
 ) -> None:
     for query in sorted(queries, key=lambda item: str(item["id"])):
         for repetition in range(repetitions):
             started = time.perf_counter()
-            response = adapter.answer(_public_query(query, dataset.scenario_id))
+            response = adapter.answer(_public_query(query, scenario_id))
             latency_ms = (time.perf_counter() - started) * 1000
-            raw_response = {
-                "answer": response.answer,
-                "retrieved_event_ids": response.retrieved_event_ids,
-                "decision": response.decision,
-                "confidence": response.confidence,
-                "metadata": response.metadata,
-            }
-            scoring_query = _with_derived_forbidden(query, raw_response, oracle, dataset)
-            row = score_response(scoring_query, raw_response, latency_ms=latency_ms)
-            row["repetition"] = repetition
-            scored.append(row)
+            collected.append(
+                {
+                    "query": query,
+                    "raw_response": {
+                        "answer": response.answer,
+                        "retrieved_event_ids": response.retrieved_event_ids,
+                        "decision": response.decision,
+                        "confidence": response.confidence,
+                        "metadata": response.metadata,
+                    },
+                    "latency_ms": latency_ms,
+                    "repetition": repetition,
+                }
+            )
+
+
+def _score_collected(
+    dataset: BenchmarkDataset,
+    collected: list[dict[str, Any]],
+    repetitions: int,
+) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    """Build ground truth and score the already-recorded answers."""
+
+    oracle = PolicyOracle(dataset)
+    scored: list[dict[str, Any]] = []
+    for item in collected:
+        scoring_query = _with_derived_forbidden(
+            item["query"], item["raw_response"], oracle, dataset
+        )
+        row = score_response(scoring_query, item["raw_response"], latency_ms=item["latency_ms"])
+        row["repetition"] = item["repetition"]
+        scored.append(row)
+    summary = aggregate_scores(scored, repetitions=repetitions)
+    return scored, summary
 
 
 def _public_event(event: dict[str, Any]) -> dict[str, Any]:

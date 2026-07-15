@@ -181,7 +181,8 @@ class _OnlinePolicy:
             for space in scenario.get("spaces", [])
         }
         self.memberships: dict[tuple[str, str], list[tuple[int, bool]]] = defaultdict(list)
-        self.deleted: set[str] = set()
+        self.deleted: dict[str, int] = {}
+        self.policy_changes: dict[str, list[tuple[int, str]]] = defaultdict(list)
 
     def ingest(self, event: dict[str, Any]) -> None:
         event_type = event.get("type")
@@ -189,9 +190,25 @@ class _OnlinePolicy:
             key = (str(event["space_id"]), str(event["user_id"]))
             self.memberships[key].append((int(event["seq"]), event.get("action") == "join"))
         elif event_type == "delete":
-            self.deleted.add(str(event["target_event_id"]))
+            target = str(event["target_event_id"])
+            seq = int(event["seq"])
+            self.deleted[target] = min(seq, self.deleted.get(target, seq))
         elif event_type == "policy_change":
-            self.policies[str(event["space_id"])] = str(event["history_policy"])
+            self.policy_changes[str(event["space_id"])].append(
+                (int(event["seq"]), str(event["history_policy"]))
+            )
+
+    def history_policy(self, space_id: str, at_seq: int) -> str | None:
+        policy = self.policies.get(space_id)
+        for seq, changed_policy in self.policy_changes.get(space_id, []):
+            if seq > at_seq:
+                break
+            policy = changed_policy
+        return policy
+
+    def is_deleted(self, event_id: str, at_seq: int) -> bool:
+        deleted_at = self.deleted.get(event_id)
+        return deleted_at is not None and deleted_at <= at_seq
 
     def is_member(self, user_id: str, space_id: str, at_seq: int) -> bool:
         active = False
@@ -204,10 +221,14 @@ class _OnlinePolicy:
     def audience_can_view(
         self, event: dict[str, Any], recipients: set[str], at_seq: int
     ) -> bool:
-        if not recipients or str(event["id"]) in self.deleted or int(event["seq"]) > at_seq:
+        if (
+            not recipients
+            or self.is_deleted(str(event["id"]), at_seq)
+            or int(event["seq"]) > at_seq
+        ):
             return False
         space_id = str(event["space_id"])
-        policy = self.policies.get(space_id)
+        policy = self.history_policy(space_id, at_seq)
         if policy == "public":
             return True
         for user_id in recipients:
